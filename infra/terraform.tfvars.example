@@ -1,0 +1,8 @@
+# Copy to terraform.tfvars and fill in.
+
+# Required: your GitHub repo in "owner/name" form.
+github_repo = "your-org/nestmono"
+
+# Optional overrides:
+# region        = "ap-southeast-1"
+# deploy_branch = "main"

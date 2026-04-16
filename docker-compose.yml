@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: nestmono
+      POSTGRES_PASSWORD: nestmono
+      POSTGRES_DB: nestmono
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nestmono"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      DATABASE_URL: postgres://nestmono:nestmono@db:5432/nestmono
+      JWT_SECRET: local-dev-secret-change-me-0123456789
+      NODE_ENV: development
+    ports: ["3000:3000"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:3000
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+    ports: ["3001:3001"]
+    depends_on: [api]
+
+volumes:
+  pgdata:

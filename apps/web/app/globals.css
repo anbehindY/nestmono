@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light dark;
+  }
+  html,
+  body {
+    @apply bg-surface-muted text-ink antialiased;
+  }
+  @media (prefers-color-scheme: dark) {
+    html,
+    body {
+      @apply bg-slate-950 text-slate-100;
+    }
+  }
+  ::selection {
+    @apply bg-brand/20 text-ink;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

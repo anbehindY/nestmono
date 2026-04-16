@@ -1,0 +1,33 @@
+name: PR checks
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Typecheck & build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+        working-directory: apps/api
+
+      - name: Build API
+        run: npm run build
+        working-directory: apps/api
+
+      - name: Build Web
+        run: npm run build
+        working-directory: apps/web
+        env:
+          NEXT_PUBLIC_API_URL: http://placeholder
