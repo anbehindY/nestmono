@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { FileText, Sparkles } from 'lucide-react';
+import { FileText, Heart, Sparkles } from 'lucide-react';
 import { apiFetch } from '../lib/api';
-import { Alert, Badge, Card } from '../components/ui';
+import { getToken } from '../lib/auth';
+import { Alert, Badge, Card, cn } from '../components/ui';
 
 interface Post {
   id: number;
@@ -12,6 +14,7 @@ interface Post {
   content: string;
   createdAt: string;
   author?: { id: number; email: string; name?: string | null };
+  _count?: { likes: number };
 }
 
 export default function Home() {
@@ -58,28 +61,83 @@ export default function Home() {
           <ul className="grid gap-4 sm:grid-cols-2">
             {posts.map((p) => (
               <li key={p.id}>
-                <Card className="h-full p-5 transition-shadow hover:shadow-pop">
-                  <article className="flex h-full flex-col gap-3">
-                    <h3 className="font-serif text-xl font-semibold leading-snug tracking-tight text-ink dark:text-slate-100">
-                      {p.title}
-                    </h3>
-                    <p className="line-clamp-3 text-sm text-ink-muted dark:text-slate-400">
-                      {p.content}
-                    </p>
-                    <div className="mt-auto flex items-center justify-between pt-2 text-xs text-ink-subtle dark:text-slate-500">
-                      <span>{p.author?.name ?? p.author?.email}</span>
-                      <time dateTime={p.createdAt}>
-                        {new Date(p.createdAt).toLocaleDateString()}
-                      </time>
-                    </div>
-                  </article>
-                </Card>
+                <PostCard post={p} />
               </li>
             ))}
           </ul>
         )}
       </section>
     </main>
+  );
+}
+
+function PostCard({ post }: { post: Post }) {
+  const router = useRouter();
+  const [liked, setLiked] = useState(false);
+  const [count, setCount] = useState(post._count?.likes ?? 0);
+  const [busy, setBusy] = useState(false);
+
+  async function toggle() {
+    const token = getToken();
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+    if (busy) return;
+    setBusy(true);
+    const next = !liked;
+    setLiked(next);
+    setCount((c) => c + (next ? 1 : -1));
+    try {
+      const res = await apiFetch<{ likes: number }>(`/api/posts/${post.id}/like`, {
+        method: next ? 'POST' : 'DELETE',
+        token,
+      });
+      setCount(res.likes);
+    } catch {
+      setLiked(!next);
+      setCount((c) => c + (next ? -1 : 1));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card className="h-full p-5 transition-shadow hover:shadow-pop">
+      <article className="flex h-full flex-col gap-3">
+        <h3 className="font-serif text-xl font-semibold leading-snug tracking-tight text-ink dark:text-slate-100">
+          {post.title}
+        </h3>
+        <p className="line-clamp-3 text-sm text-ink-muted dark:text-slate-400">
+          {post.content}
+        </p>
+        <div className="mt-auto flex items-center justify-between gap-2 pt-2 text-xs text-ink-subtle dark:text-slate-500">
+          <div className="flex items-center gap-2">
+            <span>{post.author?.name ?? post.author?.email}</span>
+            <span aria-hidden>·</span>
+            <time dateTime={post.createdAt}>
+              {new Date(post.createdAt).toLocaleDateString()}
+            </time>
+          </div>
+          <button
+            onClick={toggle}
+            disabled={busy}
+            aria-pressed={liked}
+            aria-label={liked ? 'Unlike post' : 'Like post'}
+            className={cn(
+              'inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium transition-colors cursor-pointer',
+              liked
+                ? 'bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-300'
+                : 'text-ink-muted hover:bg-surface-muted hover:text-ink dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100',
+              busy && 'opacity-60',
+            )}
+          >
+            <Heart className={cn('h-3.5 w-3.5', liked && 'fill-current')} />
+            {count}
+          </button>
+        </div>
+      </article>
+    </Card>
   );
 }
 

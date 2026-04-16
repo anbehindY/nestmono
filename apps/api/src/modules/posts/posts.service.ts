@@ -36,6 +36,23 @@ export class PostsService {
     return { ok: true };
   }
 
+  async like(userId: number, postId: number) {
+    await this.assertExists(postId);
+    await this.posts.like(userId, postId);
+    return { likes: await this.posts.countLikes(postId) };
+  }
+
+  async unlike(userId: number, postId: number) {
+    await this.assertExists(postId);
+    await this.posts.unlike(userId, postId);
+    return { likes: await this.posts.countLikes(postId) };
+  }
+
+  private async assertExists(id: number) {
+    const post = await this.posts.findOwnerId(id);
+    if (!post) throw new NotFoundException('post not found');
+  }
+
   private async assertOwner(authorId: number, id: number) {
     const post = await this.posts.findOwnerId(id);
     if (!post) throw new NotFoundException('post not found');

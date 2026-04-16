@@ -56,4 +56,16 @@ export class PostsController {
   remove(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
     return this.posts.remove(user.id, id);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/like')
+  like(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
+    return this.posts.like(user.id, id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id/like')
+  unlike(@CurrentUser() user: AuthUser, @Param('id', ParseIntPipe) id: number) {
+    return this.posts.unlike(user.id, id);
+  }
 }
