@@ -77,6 +77,13 @@ data "aws_iam_policy_document" "github_deploy" {
     resources = ["*"]
   }
 
+  # Workflow reads the ALB DNS to bake into the web image build arg.
+  statement {
+    sid       = "ElbRead"
+    actions   = ["elasticloadbalancing:DescribeLoadBalancers"]
+    resources = ["*"]
+  }
+
   statement {
     sid     = "PassTaskRoles"
     actions = ["iam:PassRole"]
