@@ -1,6 +1,6 @@
 # nestmono
 
-POC monorepo: NestJS + Prisma API, Next.js web, Postgres. Deploys to AWS ECS Fargate (Spot) behind a single ALB.
+POC monorepo: NestJS + Prisma API, Next.js web, Postgres. Deploys to AWS ECS Fargate (Spot) in `ap-southeast-1` behind a single ALB. CI/CD via GitHub Actions with OIDC.
 
 ## Layout
 
